@@ -15,6 +15,7 @@ using namespace std;
 #include "TTree.h"
 #include "TH1D.h"
 #include "TDecompChol.h"
+#include "Math/ProbFuncMathCore.h"
 
 // scan_3p1_profiled: FULL 3+1 scan for the Nature Fig. 3a sin2(2theta_mue)
 // exclusion, following the published procedure (arXiv:2512.07159 Methods):
@@ -51,7 +52,8 @@ static TMatrixD pearson_inv(const TMatrixD &P, const TMatrixD &S)
 
 int main(int argc, char** argv)
 {
-  int ijob = 0, njobs = 1, ntoys = 2000, n_t24 = 20;
+  int ijob = 0, njobs = 1, ntoys = 2000, n_t24 = 20, gate = 0;
+  int num_dm2 = 60, num_amp = 60;
   TString outdir = "output_scan_3p1";
 
   for(int i=1; i<argc; i++) {
@@ -60,12 +62,15 @@ int main(int argc, char** argv)
     if( strcmp(argv[i],"-t")==0 ) { stringstream c(argv[i+1]); c>>ntoys; }
     if( strcmp(argv[i],"-k")==0 ) { stringstream c(argv[i+1]); c>>n_t24; }
     if( strcmp(argv[i],"-o")==0 ) { outdir = argv[i+1]; }
+    if( strcmp(argv[i],"-gdm2")==0 ) { stringstream c(argv[i+1]); c>>num_dm2; }
+    if( strcmp(argv[i],"-gamp")==0 ) { stringstream c(argv[i+1]); c>>num_amp; }
+    if( strcmp(argv[i],"-G")==0 )    { stringstream c(argv[i+1]); c>>gate; }
   }
 
   gROOT->SetBatch(1);
 
-  const int    NUM_dm2 = 60;  const double DM2_LO = -2, DM2_HI = 2;
-  const int    NUM_amp = 60;  const double AMP_LO = -4, AMP_HI = 0;
+  const int    NUM_dm2 = num_dm2;  const double DM2_LO = -2, DM2_HI = 2;
+  const int    NUM_amp = num_amp;  const double AMP_LO = -4, AMP_HI = 0;
   TH1D *h1d_dm2 = new TH1D("h1d_dm2", "", NUM_dm2, DM2_LO, DM2_HI);
   TH1D *h1d_amp = new TH1D("h1d_amp", "", NUM_amp, AMP_LO, AMP_HI);
 
@@ -200,6 +205,13 @@ int main(int argc, char** argv)
   outtree->Branch("cls_data",&t_cls_data,"cls_data/D");
   outtree->Branch("T_med3",&t_Tmed3,"T_med3/D");        outtree->Branch("p4_med",&t_p4med,"p4_med/D");
   outtree->Branch("cls_sens",&t_cls_sens,"cls_sens/D");
+  int t_gated_d, t_gated_s; double t_clsg_data, t_clsg_sens, t_dchi2a_d, t_dchi2a_s;
+  outtree->Branch("gated_data",&t_gated_d,"gated_data/I");
+  outtree->Branch("gated_sens",&t_gated_s,"gated_sens/I");
+  outtree->Branch("clsg_data",&t_clsg_data,"clsg_data/D");
+  outtree->Branch("clsg_sens",&t_clsg_sens,"clsg_sens/D");
+  outtree->Branch("dchi2a_d",&t_dchi2a_d,"dchi2a_d/D");
+  outtree->Branch("dchi2a_s",&t_dchi2a_s,"dchi2a_s/D");
 
   //////////////////////////////////////////// grid loop
 
@@ -244,8 +256,16 @@ int main(int argc, char** argv)
       TMatrixD P4, S4;
       apply_point(t_dm2, t_t14_d, t_t24_d, P4, S4);
       TMatrixD C4inv = pearson_inv(P4, S4);
-      osc_test->Set_toy_variations(ntoys);
       t_Tobs = chi2_3_data - quadform(D - P4, C4inv);
+      t_dchi2a_d = quadform(P3 - P4, C4inv);
+      // Gaussian-CLs estimate (arXiv:1407.5052): T~N(+-D, 4D)
+      { double Dv = t_dchi2a_d>1e-9 ? t_dchi2a_d : 1e-9; double sg = 2*sqrt(Dv);
+        t_clsg_data = ROOT::Math::normal_cdf((t_Tobs - Dv)/sg) / ROOT::Math::normal_cdf((t_Tobs + Dv)/sg); }
+      t_gated_d = ( gate && (t_clsg_data < 0.001 || t_clsg_data > 0.85) ) ? 1 : 0;
+      if( t_gated_d ){
+        t_p3obs = -1; t_p4obs = -1; t_cls_data = t_clsg_data;
+      } else {
+      osc_test->Set_toy_variations(ntoys);
       vector<double> T3(ntoys), T4(ntoys);
       for(int i=0;i<ntoys;i++){
         const TMatrixD &x4 = osc_test->map_matrix_tosc_toy_pred[i+1];
@@ -261,6 +281,7 @@ int main(int argc, char** argv)
       t_p3obs = tailfrac(T3, t_Tobs);
       t_p4obs = tailfrac(T4, t_Tobs);
       t_cls_data = t_p4obs / t_p3obs;
+      }
     }
 
     /////////////// toys at the ASIMOV-profiled hypothesis -> cls_sens
@@ -268,6 +289,13 @@ int main(int argc, char** argv)
       TMatrixD P4, S4;
       apply_point(t_dm2, t_t14_a, t_t24_a, P4, S4);
       TMatrixD C4inv = pearson_inv(P4, S4);
+      t_dchi2a_s = quadform(P3 - P4, C4inv);
+      { double Dv = t_dchi2a_s>1e-9 ? t_dchi2a_s : 1e-9;
+        t_clsg_sens = 2*ROOT::Math::normal_cdf(-sqrt(Dv)); }
+      t_gated_s = ( gate && (t_clsg_sens < 0.001 || t_clsg_sens > 0.85) ) ? 1 : 0;
+      if( t_gated_s ){
+        t_Tmed3 = 0; t_p4med = -1; t_cls_sens = t_clsg_sens;
+      } else {
       osc_test->Set_toy_variations(ntoys);
       vector<double> T3(ntoys), T4(ntoys);
       for(int i=0;i<ntoys;i++){
@@ -284,6 +312,7 @@ int main(int argc, char** argv)
       t_Tmed3 = 0.5*( T3[ntoys/2] + T3[(ntoys-1)/2] );
       t_p4med = tailfrac(T4, t_Tmed3);
       t_cls_sens = t_p4med / tailfrac(T3, t_Tmed3);
+      }
     }
 
     outtree->Fill();

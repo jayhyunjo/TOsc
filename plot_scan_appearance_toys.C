@@ -6,9 +6,8 @@
 //   root -l -b -q 'plot_scan_appearance_toys.C("output_scan_app_toys_bnb", 1)'
 //   beam: 0 = BNB+NuMI, 1 = BNB only, 2 = NuMI only
 
-void plot_scan_appearance_toys(TString indir = "output_scan_app_toys", int beam = 0)
+void plot_scan_appearance_toys(TString indir = "output_scan_app_toys", int beam = 0, int NUM_dm2 = 60, int NUM_amp = 60, TString tagsuffix = "")
 {
-  const int NUM_dm2 = 60, NUM_amp = 60;
   const double DM2_LO = -2, DM2_HI = 2, AMP_LO = -4, AMP_HI = 0;
   TH1D *h1d_dm2 = new TH1D("h1d_dm2","",NUM_dm2,DM2_LO,DM2_HI);
   TH1D *h1d_amp = new TH1D("h1d_amp","",NUM_amp,AMP_LO,AMP_HI);
@@ -60,16 +59,16 @@ void plot_scan_appearance_toys(TString indir = "output_scan_app_toys", int beam 
     TFile *f = new TFile(refdir+"BNB_Only_App_Only_data_and_sens.root");
     ref_data = (TGraph*)f->Get("gh_appONLY_data");
     ref_sens = (TGraph*)f->Get("gh_appONLY_sensitivity");
-    ref_label = "Published app-only (BNB)"; tag = "bnbonly";
+    ref_label = "Published app-only (BNB)"; tag = "bnbonly"+tagsuffix;
   } else if( beam==2 ){
     TFile *f = new TFile(refdir+"NuMI_only_app_data.root");
     ref_data = (TGraph*)f->Get("NuMIonly_data");
-    ref_label = "Published (NuMI)"; tag = "numionly";
+    ref_label = "Published (NuMI)"; tag = "numionly"+tagsuffix;
   } else {
     TFile *f = new TFile(refdir+"BNBNuMI_3p1_data_median_brazil_asimov_Apeparance.root");
     ref_data = (TGraph*)f->Get("gh_meas");
     ref_sens = (TGraph*)f->Get("gh_asimov");
-    ref_label = "Published 3+1 profiled (BNB+NuMI)"; tag = "bnbnumi";
+    ref_label = "Published 3+1 profiled (BNB+NuMI)"; tag = "bnbnumi"+tagsuffix;
   }
 
   ////////////////////////////////////// draw

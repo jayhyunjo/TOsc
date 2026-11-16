@@ -1335,8 +1335,16 @@ double TOsc::Prob_oscillaion(double Etrue, double baseline, int strflag_osc)// o
   const int nueNC     = 5;
   const int numuNC    = 6;
   
-  int flag_osc = strflag_osc;    
-    
+  int flag_osc = strflag_osc;
+
+  if( flag_osc_appearance_only ) {
+    // "simple case" nue appearance-only: tosc_sin2_2theta_14 == sin2_2theta_mue
+    if( flag_osc==numu2nue )      prob = tosc_sin2_2theta_14 * sin2_Delta;
+    else if( flag_osc==nue2numu ) prob = 0;
+    else                          prob = 1;// all survival probabilities: no disappearance
+    return prob;
+  }
+
   switch( flag_osc ) {
   case nue2nue:
     prob = 1 - effective_sin2_2theta_14 * sin2_Delta;

@@ -15,10 +15,15 @@ LDFLAGS += $(shell $(ROOTSYS)/bin/root-config --libs)
 #CFLAGS += -std=c++11 -I./inc/ -I$(ROOTSYS)/include/
 CFLAGS += -I./inc/ -I$(ROOTSYS)/include/
 
-all: $(SOURCES) $(EXECUTABLE)
+SCAN=scan_appearance_cls
+
+all: $(SOURCES) $(EXECUTABLE) $(SCAN)
 
 $(EXECUTABLE):$(OBJECTS)
 	$(CC) -o $@ $(OBJECTS) $(LDFLAGS) -lMinuit2
+
+$(SCAN): $(SCAN).o $(DIR_SRC)/TOsc.o
+	$(CC) -o $@ $(SCAN).o $(DIR_SRC)/TOsc.o $(LDFLAGS) -lMinuit2
 
 #.C.o:
 %.o:%.cxx

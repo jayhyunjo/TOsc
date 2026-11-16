@@ -177,6 +177,30 @@ Rule of thumb: a 60×60 Wilks Δχ² grid ≈ 10 CPU-min (≈1 min on 10–20 wo
 a frequentist CLs scan with ~500 toys/point on a ~45×45 grid ≈ overnight on
 this machine (matches the "~12 h" experience of the downstream fork).
 
+## Contour production (nue appearance)
+
+`scan_appearance_cls.cxx` computes the χ² grid for the appearance-only
+("simple case") analysis: `TOsc::flag_osc_appearance_only` switches
+`Prob_oscillaion` to pure ν_μ→ν_e (second oscillation parameter becomes
+sin²2θ_μe directly, all survival probabilities 1). Grid: 60×60 log10 bin
+centers, Δm²₄₁ ∈ [0.01, 100] eV², sin²2θ_μe ∈ [1e-4, 1].
+
+```bash
+make                                              # builds scan_appearance_cls too
+for j in $(seq 0 9); do ./scan_appearance_cls -j $j -n 10 & done; wait   # ~2.5 min on 10 cores
+root -l -b -q plot_scan_appearance.C              # Gaussian-CLs 95% contours + comparison
+```
+
+Per grid point the scan stores χ²(4ν) on the 3ν-Asimov sample (= Δχ²_Asimov)
+and on data, plus χ²(3ν|data). `plot_scan_appearance.C` converts these to 95%
+CLs contours with the Gaussian CLs approximation (arXiv:1407.5052; sensitivity
+contour ⇔ Δχ²_Asimov = 3.84) and overlays the published Nature curves from
+`natureReproducer/data/`. First result (2026-11-16): sensitivity and data
+curves track the published ones closely on the low-Δm² arm (0.03–2 eV²);
+deviations above ~3 eV² are expected since the published appearance plot
+profiles the full 3+1 over sin²θ₂₄ and uses toy-based CLs. Outputs:
+`contour_appearance_cls.{png,pdf,root}`.
+
 ## Related
 
 - `jpmendez79/TOsc` (Jesse Mendez, LSU) — active downstream fork: distributed

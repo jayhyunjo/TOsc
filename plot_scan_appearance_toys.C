@@ -16,7 +16,7 @@ void plot_scan_appearance_toys(TString indir = "output_scan_app_toys", int beam 
   ////////////////////////////////////// read grid
 
   TChain ch("tree");
-  ch.Add(indir + "/scan_app_toys_*.root");
+  ch.Add(indir + "/*.root");
   int idm2, iamp; double cls_data, cls_sens;
   ch.SetBranchAddress("idm2",&idm2); ch.SetBranchAddress("iamp",&iamp);
   ch.SetBranchAddress("cls_data",&cls_data); ch.SetBranchAddress("cls_sens",&cls_sens);

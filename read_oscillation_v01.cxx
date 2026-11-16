@@ -217,7 +217,7 @@ int main(int argc, char** argv)
   
   ///////////////////////////////////////////////////////////////////////////////// one example: chi2 calculation
 
-  if( 0 ) {
+  if( 1 ) {
     val_dm2_41         = 0;// no-oscillation
     val_sin2_2theta_14 = 0.1;
     val_sin2_theta_24  = 0.1;
@@ -233,7 +233,11 @@ int main(int argc, char** argv)
 
     double pars_4v[4] = {0, 0.5, 0.5, 0};// dm2, t14, t24, t34
     double chi2_result = osc_test->FCN( pars_4v );
-    cout<<endl<<" ---> chi2 result: "<<chi2_result<<endl<<endl;;
+    cout<<endl<<" ---> chi2 closure (no-osc Asimov vs dm2=0 point, expect ~0): "<<chi2_result<<endl<<endl;
+
+    double pars_bf[4] = {7.3, 0.36, 0, 0};// Nature best-fit: dm2, t14, t24, t34
+    double chi2_bf = osc_test->FCN( pars_bf );
+    cout<<endl<<" ---> chi2 (no-osc Asimov vs 3+1 best-fit 7.3/0.36): "<<chi2_bf<<endl<<endl;
   }
 
   ///////////////////////////////////////////////////////////////////////////////// one example: minimization

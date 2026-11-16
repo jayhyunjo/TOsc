@@ -16,14 +16,18 @@ LDFLAGS += $(shell $(ROOTSYS)/bin/root-config --libs)
 CFLAGS += -I./inc/ -I$(ROOTSYS)/include/
 
 SCAN=scan_appearance_cls
+SCANTOYS=scan_appearance_cls_toys
 
-all: $(SOURCES) $(EXECUTABLE) $(SCAN)
+all: $(SOURCES) $(EXECUTABLE) $(SCAN) $(SCANTOYS)
 
 $(EXECUTABLE):$(OBJECTS)
 	$(CC) -o $@ $(OBJECTS) $(LDFLAGS) -lMinuit2
 
 $(SCAN): $(SCAN).o $(DIR_SRC)/TOsc.o
 	$(CC) -o $@ $(SCAN).o $(DIR_SRC)/TOsc.o $(LDFLAGS) -lMinuit2
+
+$(SCANTOYS): $(SCANTOYS).o $(DIR_SRC)/TOsc.o
+	$(CC) -o $@ $(SCANTOYS).o $(DIR_SRC)/TOsc.o $(LDFLAGS) -lMinuit2
 
 #.C.o:
 %.o:%.cxx

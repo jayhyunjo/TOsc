@@ -98,8 +98,9 @@ anything.
 
 The canonical dataset is `/home/jjo/Work/MicroBooNE/LEEana/BNBNuMI_TOsc_input_combined/`
 (see its README.md for provenance — assembled from two handover copies, the
-`numifluxpatched` CV taking precedence; its NuMI CV differs from the other
-snapshot by ×1.2–1.35, which snapshot matches the paper exactly is unverified).
+`numifluxpatched` CV taking precedence; verified 2026-11-16 to match the
+published Nature spectra exactly, bin by bin, in all four numuCC channels —
+the other snapshot's NuMI CV is a pre-flux-patch version, +30–35% off).
 Wire it up with a single symlink:
 
 ```bash

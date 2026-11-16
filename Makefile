@@ -17,8 +17,9 @@ CFLAGS += -I./inc/ -I$(ROOTSYS)/include/
 
 SCAN=scan_appearance_cls
 SCANTOYS=scan_appearance_cls_toys
+CHECKMAP=check_dchi2_map
 
-all: $(SOURCES) $(EXECUTABLE) $(SCAN) $(SCANTOYS)
+all: $(SOURCES) $(EXECUTABLE) $(SCAN) $(SCANTOYS) $(CHECKMAP)
 
 $(EXECUTABLE):$(OBJECTS)
 	$(CC) -o $@ $(OBJECTS) $(LDFLAGS) -lMinuit2
@@ -39,3 +40,6 @@ canv:
 	rm -f canv*
 rroot:
 	rm -f *.root
+
+$(CHECKMAP): $(CHECKMAP).o $(DIR_SRC)/TOsc.o
+	$(CC) -o $@ $(CHECKMAP).o $(DIR_SRC)/TOsc.o $(LDFLAGS) -lMinuit2

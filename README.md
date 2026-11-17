@@ -213,16 +213,55 @@ profiles the full 3+1 over sin²θ₂₄ and uses toy-based CLs. Outputs:
 
 ## Nature Fig. 3a reproduction (2026-11-17)
 
-`scan_3p1_profiled` implements the published full-3+1 procedure (profile over
-the (θ₁₄,θ₂₄) family per (Δm², sin²2θ_μe) point — on data for the data curve,
-on the 3ν Asimov for sensitivity — then toy CLs at the profiled hypotheses).
-Publication-grade run: 100×100 log grid, 100 profiling hypotheses/point,
-7000 toys/hypothesis, Gaussian-CLs gating; ~13 h on 19 workers.
+The published construction is implemented exactly, following Xiangpan's
+production CLs stage (`winxji/Frequentist_CL_calculation`,
+`ea_frequentis_CLs.cc`) rather than any approximation:
 
-Result vs the published curves (`natureReproducer/data`): data exclusion
-matches `gh_meas` at ratios 1.00/1.03/0.90/0.83/0.99/1.06 (Δm² = 0.1→50 eV²);
-median sensitivity matches `gh_median_val` at 1.00/1.03/1.01 below 3 eV² and
-1.15–1.21 above (residual dominated by rapid-oscillation numerics at high Δm²,
-quantified against the official Zenodo Δχ² map via `check_dchi2_map`: ≲1 χ²
-unit near contours below 2.4 eV², ~4 units at 38 eV²). Compare sensitivity to
-the published MEDIAN (`gh_median_val`), not `gh_asimov`.
+- **χ²**: Pearson statistical covariance + full systematics (the paper's Methods
+  state the Pearson format explicitly). Verified point-by-point against the
+  official Δχ² map (Zenodo 10.5281/zenodo.17161263) with `check_dchi2_map`:
+  χ²_ours − Δχ²_official is constant to rms 5×10⁻⁴ at low Δm².
+- **CLs** (`func_cal_CLs`): per grid point, 3ν and 4ν pseudo-experiment
+  ensembles (7000 each) give the Δχ² = χ²_4ν − χ²_3ν distributions;
+  CL_sb/CL_b; the map stores 1 − CLs and the 0.95 contour is taken with ROOT
+  `cont z list`.
+- **Data** is profiled over the (θ₁₄, θ₂₄) family at each grid point before
+  entering the test statistic.
+- **Sensitivity** (`func_CLs_toys` + `func_sensitivity` + `func_quantiles`): a
+  separate ensemble of 3ν "SM toys" (500), **each treated exactly like data** —
+  profiled, given its own CLs value at every grid point, and its own 95%
+  contour. The median and ±1σ/±2σ bands are quantiles across that ensemble of
+  contours. (Using "CLs at the median test statistic" instead — an
+  approximation — biases the sensitivity high by 15–20% above 3 eV².)
+
+```bash
+make scan_3p1_exact
+for j in $(seq 0 18); do ./scan_3p1_exact -j $j -n 19 -t 7000 -m 500 -k 50 \
+    -gdm2 60 -gamp 60 -o output_scan_3p1_exact > logs_3p1_exact/job_$j.log 2>&1 & done; wait
+root -l -b -q 'plot_3p1_exact.C("output_scan_3p1_exact", 60, 60)'
+```
+
+60×60 grid (production's CLs grid size), 100 profiling hypotheses per point;
+~2.5 h on 19 workers.
+
+**Result vs the published curves** (`natureReproducer/data`), sampled at 200
+Δm² values over 0.03–80 eV²:
+
+| Curve | median ratio (ours/published) | 16–84% spread | within 10% |
+|---|---|---|---|
+| Data exclusion | **1.002** | 0.93 – 1.06 | 85% |
+| Median sensitivity | **1.007** | 0.93 – 1.08 | 83% |
+
+No systematic offset remains on either curve; the residual scatter is
+consistent with the toy statistics and the 60-bin-per-4-decades amplitude
+quantization (~17% per bin). Outputs: `contour_3p1_exact.{png,pdf,root}`
+(data, median, ±1σ/±2σ bands).
+
+### Performance note
+
+`TOsc::Set_toy_variations` needs ~66 rejection attempts per accepted toy (the
+negativity veto), and each attempt computed the full 364×364 eigenvector
+product *before* the scan that breaks at the first bad bin. Fusing the product
+into the scan performs the same dot products in the same order on the same
+random draws — verified **bit-identical** (43,680 toy values, fixed seed) — and
+is 2.4× faster. `dump_toys` is the verification tool.

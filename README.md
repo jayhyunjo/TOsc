@@ -210,3 +210,19 @@ profiles the full 3+1 over sin²θ₂₄ and uses toy-based CLs. Outputs:
 - Local docs: `/home/jjo/Work/MicroBooNE/docs/` (TOsc Instruction.pdf,
   TOsc_preparation.rtf, WireCell_OSC_Collab.pdf, talks).
 - Published-result curves for comparison: `/home/jjo/Work/MicroBooNE/natureReproducer/data/`.
+
+## Nature Fig. 3a reproduction (2026-11-17)
+
+`scan_3p1_profiled` implements the published full-3+1 procedure (profile over
+the (θ₁₄,θ₂₄) family per (Δm², sin²2θ_μe) point — on data for the data curve,
+on the 3ν Asimov for sensitivity — then toy CLs at the profiled hypotheses).
+Publication-grade run: 100×100 log grid, 100 profiling hypotheses/point,
+7000 toys/hypothesis, Gaussian-CLs gating; ~13 h on 19 workers.
+
+Result vs the published curves (`natureReproducer/data`): data exclusion
+matches `gh_meas` at ratios 1.00/1.03/0.90/0.83/0.99/1.06 (Δm² = 0.1→50 eV²);
+median sensitivity matches `gh_median_val` at 1.00/1.03/1.01 below 3 eV² and
+1.15–1.21 above (residual dominated by rapid-oscillation numerics at high Δm²,
+quantified against the official Zenodo Δχ² map via `check_dchi2_map`: ≲1 χ²
+unit near contours below 2.4 eV², ~4 units at 38 eV²). Compare sensitivity to
+the published MEDIAN (`gh_median_val`), not `gh_asimov`.

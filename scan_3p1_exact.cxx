@@ -77,7 +77,7 @@ static TMatrixD pearson_inv(const TMatrixD &P, const TMatrixD &S)
 
 int main(int argc, char** argv)
 {
-  int ijob=0, njobs=1, ntoys=7000, nsm=500, n_t24=50, num_dm2=60, num_amp=60;
+  int ijob=0, njobs=1, ntoys=7000, nsm=500, n_t24=50, num_dm2=60, num_amp=60, onerow=-1, crn=0;
   TString outdir = "output_scan_3p1_exact";
 
   for(int i=1; i<argc; i++) {
@@ -89,6 +89,8 @@ int main(int argc, char** argv)
     if( strcmp(argv[i],"-gdm2")==0 ) { stringstream c(argv[i+1]); c>>num_dm2; }
     if( strcmp(argv[i],"-gamp")==0 ) { stringstream c(argv[i+1]); c>>num_amp; }
     if( strcmp(argv[i],"-o")==0 )    { outdir = argv[i+1]; }
+    if( strcmp(argv[i],"-row")==0 )  { stringstream c(argv[i+1]); c>>onerow; }
+    if( strcmp(argv[i],"-crn")==0 )  { stringstream c(argv[i+1]); c>>crn; }
   }
 
   gROOT->SetBatch(1);
@@ -237,7 +239,8 @@ int main(int argc, char** argv)
   TTree *outtree = new TTree("tree", "exact published-construction 3+1 CLs grid");
   int    t_idm2, t_iamp;
   double t_dm2, t_amp, t_t14_d, t_t24_d, t_chi2d_min, t_Dchi2_data, t_cls_data;
-  vector<double> *t_cls_sm = new vector<double>;
+  vector<double> *t_cls_sm = new vector<double>;      // consistent: SM toy at the grid-point hypothesis
+  vector<double> *t_cls_sm_prof = new vector<double>; // diagnostic: SM toy profiled to its own best fit
   outtree->Branch("idm2",&t_idm2,"idm2/I");        outtree->Branch("iamp",&t_iamp,"iamp/I");
   outtree->Branch("dm2",&t_dm2,"dm2/D");           outtree->Branch("s22tue",&t_amp,"s22tue/D");
   outtree->Branch("t14_d",&t_t14_d,"t14_d/D");     outtree->Branch("t24_d",&t_t24_d,"t24_d/D");
@@ -245,6 +248,7 @@ int main(int argc, char** argv)
   outtree->Branch("Dchi2_data",&t_Dchi2_data,"Dchi2_data/D");
   outtree->Branch("cls_data",&t_cls_data,"cls_data/D");
   outtree->Branch("cls_sm", &t_cls_sm);
+  outtree->Branch("cls_sm_prof", &t_cls_sm_prof);
 
   //////////////////////////////////////////// grid loop
 
@@ -253,6 +257,7 @@ int main(int argc, char** argv)
   for(int ipt=0; ipt<NUM_dm2*NUM_amp; ipt++) {
     if( ipt % njobs != ijob ) continue;
     t_idm2 = ipt / NUM_amp;  t_iamp = ipt % NUM_amp;
+    if( onerow>=0 && t_idm2!=onerow ) continue;
     t_dm2 = pow(10, h1d_dm2->GetBinCenter(t_idm2+1));
     t_amp = pow(10, h1d_amp->GetBinCenter(t_iamp+1));
 
@@ -296,6 +301,15 @@ int main(int argc, char** argv)
     TMatrixD S4 = osc_test->matrix_tosc_eff_newworld_abs_syst_total;
     TMatrixD C4inv = pearson_inv(P4, S4);
 
+    // Common random numbers across grid points (variance reduction): the 4nu
+    // ensemble at every grid point is drawn from the same random stream, so the
+    // CL_sb surface varies smoothly in the oscillation parameters instead of
+    // carrying independent Monte-Carlo noise at each point. Each point still gets
+    // a valid 7000-sample ensemble from its own 4nu distribution, so the CLs
+    // estimate at each point remains unbiased; only the point-to-point jitter
+    // (which otherwise fragments the per-toy 95% contours and biases a
+    // first-crossing limit low) is removed.
+    if( crn ) osc_test->tosc_rand->SetSeed(4357);
     osc_test->Set_toy_variations(ntoys);// 4nu pseudo-experiments at this hypothesis
 
     const double *p4raw2 = P4.GetMatrixArray();
@@ -323,9 +337,18 @@ int main(int argc, char** argv)
     t_Dchi2_data = t_chi2d_min - chi2_3_data;
     t_cls_data   = cls_of( t_Dchi2_data );
 
-    /////////////// every SM toy, treated exactly like data
+    /////////////// every SM toy, evaluated at the SAME hypothesis as the ensembles
+    // (the grid point's hypothesis, fixed from the data profile). Using each toy's
+    // own profiled minimum instead would compare the observed statistic against
+    // distributions built for a different hypothesis -- inconsistent, and it makes
+    // the per-toy CLs surface noise-dominated.
     t_cls_sm->clear(); t_cls_sm->reserve(nsm);
-    for(int m=0;m<nsm;m++) t_cls_sm->push_back( cls_of( chi2sm_min[m] - chi2_3_on_xsm[m] ) );
+    t_cls_sm_prof->clear(); t_cls_sm_prof->reserve(nsm);
+    for(int m=0;m<nsm;m++){
+      double chi2_at_hyp = quadform_diff(&xsm[(size_t)m*NB], p4raw2, c4raw2, NB, &buf[0]);
+      t_cls_sm->push_back( cls_of( chi2_at_hyp - chi2_3_on_xsm[m] ) );
+      t_cls_sm_prof->push_back( cls_of( chi2sm_min[m] - chi2_3_on_xsm[m] ) );
+    }
 
     outtree->Fill();
     ndone++;

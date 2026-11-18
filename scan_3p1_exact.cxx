@@ -77,7 +77,7 @@ static TMatrixD pearson_inv(const TMatrixD &P, const TMatrixD &S)
 
 int main(int argc, char** argv)
 {
-  int ijob=0, njobs=1, ntoys=7000, nsm=500, n_t24=50, num_dm2=60, num_amp=60, onerow=-1, crn=0, fcmode=0, toyflip=0;
+  int ijob=0, njobs=1, ntoys=7000, nsm=500, n_t24=50, num_dm2=60, num_amp=60, onerow=-1, crn=0, fcmode=0, toyflip=0, toyclip=0;
   TString outdir = "output_scan_3p1_exact";
 
   for(int i=1; i<argc; i++) {
@@ -93,6 +93,7 @@ int main(int argc, char** argv)
     if( strcmp(argv[i],"-crn")==0 )  { stringstream c(argv[i+1]); c>>crn; }
     if( strcmp(argv[i],"-fc")==0 )   { stringstream c(argv[i+1]); c>>fcmode; }
     if( strcmp(argv[i],"-toyflip")==0 ){ stringstream c(argv[i+1]); c>>toyflip; }
+    if( strcmp(argv[i],"-toyclip")==0 ){ stringstream c(argv[i+1]); c>>toyclip; }
   }
 
   gROOT->SetBatch(1);
@@ -189,6 +190,7 @@ int main(int argc, char** argv)
   osc_test->Set_oscillation_base(Configure_Osc::default_eventlist_dir);
   osc_test->flag_osc_appearance_only = false;// FULL 3+1
   osc_test->flag_toy_flip_all = toyflip;
+  osc_test->flag_toy_clip0 = toyclip;
 
   //////////////////////////////////////////// H0 = 3nu reference
 

@@ -94,12 +94,14 @@ int main(int argc, char** argv)
   
   /////// set only one time
 
+  TString fluxdir = Configure_Osc::default_fluxXs_dir;
+  if(argc>3) fluxdir = argv[3];// alternate flux-covariance directory
   osc_test->Set_default_cv_cov(Configure_Osc::default_cv_file, Configure_Osc::default_dirtadd_file,
-                               Configure_Osc::default_mcstat_file, Configure_Osc::default_fluxXs_dir,
+                               Configure_Osc::default_mcstat_file, fluxdir,
                                Configure_Osc::default_detector_dir);
   osc_test->Set_oscillation_base(Configure_Osc::default_eventlist_dir);
   osc_test->flag_osc_appearance_only = false;
-  if(argc>2) osc_test->flag_toy_flip_all = atoi(argv[2]);
+  if(argc>2){ int m=atoi(argv[2]); osc_test->flag_toy_flip_all = (m==1); osc_test->flag_toy_clip0 = (m==2); }
   osc_test->Set_oscillation_pars(0,0,0,0);
   osc_test->Apply_oscillation();
   osc_test->Set_apply_POT();

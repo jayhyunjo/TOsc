@@ -1070,7 +1070,13 @@ void TOsc::Set_toy_variations(int num_toys)
       double val_with_syst = acc_ + tosc_predraw_[idx];// key point
 
       if(val_with_syst<0) {
-	if( tosc_predraw_[idx]<2 || flag_toy_flip_all ) {// hack for low statistics
+	if( flag_toy_clip0 ) {
+	  // PRODUCTION: "Universes generated with capping negative values to zero"
+	  // (Xiangpan, Slack 2026-11-18): no re-throw; cap the universe at 0, then Poisson.
+	  // Implemented by storing a variation that takes the bin exactly to 0.
+	  acc_ = -tosc_predraw_[idx];
+	}
+	else if( tosc_predraw_[idx]<2 || flag_toy_flip_all ) {// hack for low statistics
 	  acc_ *= (-1);                 // flag_toy_flip_all: DIAGNOSTIC variant --
 	}                               // flip every offending bin instead of
 	else {                          // rejecting the whole toy (the wholesale

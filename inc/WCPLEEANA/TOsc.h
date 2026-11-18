@@ -108,6 +108,7 @@ class TOsc {
 
     flag_osc_appearance_only     = 0;
     flag_toy_flip_all            = 0;
+    flag_toy_clip0               = 0;
 
     ///////////////////////////
     
@@ -206,6 +207,7 @@ class TOsc {
   // sin^2(2theta_mue); all survival probabilities are 1. 3rd argument unused.
   bool flag_osc_appearance_only;
   bool flag_toy_flip_all;// diagnostic: see Set_toy_variations
+  bool flag_toy_clip0;   // PRODUCTION new throwing: no re-throw, clip negative universes to 0
 
   bool flag_goodness_of_fit_CNP;
 

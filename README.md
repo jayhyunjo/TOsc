@@ -244,18 +244,25 @@ root -l -b -q 'plot_3p1_exact.C("output_scan_3p1_exact", 60, 60)'
 60×60 grid (production's CLs grid size), 100 profiling hypotheses per point;
 ~2.5 h on 19 workers.
 
-**Result vs the published curves** (`natureReproducer/data`), sampled at 200
-Δm² values over 0.03–80 eV²:
+**Result vs the published curves** (`natureReproducer/data`), production-faithful
+configuration (`output_3p1_final`: 60×60, 7000-toy ensembles, 500 SM toys,
+fixed-hypothesis ensembles, data and SM toys profiled, no variance-reduction
+tricks), sampled at 200 Δm² values:
 
-| Curve | median ratio (ours/published) | 16–84% spread | within 10% |
-|---|---|---|---|
-| Data exclusion | **1.002** | 0.93 – 1.06 | 85% |
-| Median sensitivity | **1.007** | 0.93 – 1.08 | 83% |
+| Curve | Region | median ratio (ours/published) | spread (16–84%) | within 10% |
+|---|---|---|---|---|
+| Data exclusion | 0.03–80 eV² | **0.987** | 0.91–1.04 | 81% |
+| Data exclusion | 10–80 eV² | 0.972 | 0.94–1.02 | 95% |
+| Median sensitivity | 0.03–10 eV² | **0.97–0.98** | — | ~80–100% |
+| Median sensitivity | 10–80 eV² | 0.926 | 0.91–0.94 | 88% |
 
-No systematic offset remains on either curve; the residual scatter is
-consistent with the toy statistics and the 60-bin-per-4-decades amplitude
-quantization (~17% per bin). Outputs: `contour_3p1_exact.{png,pdf,root}`
-(data, median, ±1σ/±2σ bands).
+Two items remain open and are posed to the original authors: (a) the median
+sensitivity at Δm² > 10 eV² is ~7% stronger than published; (b) our ±1σ
+sensitivity bands are uniformly ~0.6× the published width, i.e. production's
+per-toy limit ensemble is ~1.7× more dispersed at every Δm². Tested and ruled
+out: grid resolution, profiled-everywhere toy χ², common-random-number effects,
+and (inconclusively) p-value ensemble size. The construction itself matches the
+production CLs code (`winxji/Frequentist_CL_calculation`) step for step.
 
 ### Performance note
 

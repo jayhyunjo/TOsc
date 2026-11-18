@@ -107,6 +107,7 @@ class TOsc {
     flag_apply_oscillation_NuMI  = 1;
 
     flag_osc_appearance_only     = 0;
+    flag_toy_flip_all            = 0;
 
     ///////////////////////////
     
@@ -204,6 +205,7 @@ class TOsc {
   // applied, with Set_oscillation_pars' 2nd argument interpreted DIRECTLY as
   // sin^2(2theta_mue); all survival probabilities are 1. 3rd argument unused.
   bool flag_osc_appearance_only;
+  bool flag_toy_flip_all;// diagnostic: see Set_toy_variations
 
   bool flag_goodness_of_fit_CNP;
 

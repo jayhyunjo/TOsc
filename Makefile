@@ -58,3 +58,6 @@ $(EXACT3P1): $(EXACT3P1).o $(DIR_SRC)/TOsc.o
 
 dump_toys: dump_toys.o $(DIR_SRC)/TOsc.o
 	$(CC) -o $@ dump_toys.o $(DIR_SRC)/TOsc.o $(LDFLAGS) -lMinuit2
+
+dump_cov_vs_published: dump_cov_vs_published.o $(DIR_SRC)/TOsc.o
+	$(CC) -o $@ dump_cov_vs_published.o $(DIR_SRC)/TOsc.o $(LDFLAGS) -lMinuit2

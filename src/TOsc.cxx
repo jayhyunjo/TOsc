@@ -1070,12 +1070,12 @@ void TOsc::Set_toy_variations(int num_toys)
       double val_with_syst = acc_ + tosc_predraw_[idx];// key point
 
       if(val_with_syst<0) {
-	if( tosc_predraw_[idx]<2 ) {// hack for low statistics
-	  acc_ *= (-1);
-	}
-	else {
-	  flag_negative = 1;
-	  break;
+	if( tosc_predraw_[idx]<2 || flag_toy_flip_all ) {// hack for low statistics
+	  acc_ *= (-1);                 // flag_toy_flip_all: DIAGNOSTIC variant --
+	}                               // flip every offending bin instead of
+	else {                          // rejecting the whole toy (the wholesale
+	  flag_negative = 1;            // rejection truncates correlated syst
+	  break;                        // fluctuations by 10-15% in sigma at 364 bins)
 	}
       }
       tosc_var_[idx] = acc_;

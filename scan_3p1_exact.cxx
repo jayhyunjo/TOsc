@@ -77,7 +77,7 @@ static TMatrixD pearson_inv(const TMatrixD &P, const TMatrixD &S)
 
 int main(int argc, char** argv)
 {
-  int ijob=0, njobs=1, ntoys=7000, nsm=500, n_t24=50, num_dm2=60, num_amp=60, onerow=-1, crn=0;
+  int ijob=0, njobs=1, ntoys=7000, nsm=500, n_t24=50, num_dm2=60, num_amp=60, onerow=-1, crn=0, fcmode=0;
   TString outdir = "output_scan_3p1_exact";
 
   for(int i=1; i<argc; i++) {
@@ -91,6 +91,7 @@ int main(int argc, char** argv)
     if( strcmp(argv[i],"-o")==0 )    { outdir = argv[i+1]; }
     if( strcmp(argv[i],"-row")==0 )  { stringstream c(argv[i+1]); c>>onerow; }
     if( strcmp(argv[i],"-crn")==0 )  { stringstream c(argv[i+1]); c>>crn; }
+    if( strcmp(argv[i],"-fc")==0 )   { stringstream c(argv[i+1]); c>>fcmode; }
   }
 
   gROOT->SetBatch(1);
@@ -336,6 +337,59 @@ int main(int argc, char** argv)
     /////////////// data
     t_Dchi2_data = t_chi2d_min - chi2_3_data;
     t_cls_data   = cls_of( t_Dchi2_data );
+
+    if( fcmode ){
+      // PROFILED-EVERYWHERE variant (Feldman-Cousins-like): chi2_4nu of EVERY
+      // tested dataset -- each 4nu pseudo, each 3nu pseudo, each SM toy, and the
+      // data -- is min over the (t14,t24) family, exactly as the data is treated.
+      // Tests whether production produced its toy chi2 vectors through the same
+      // fit_t24 code path as the data grids.
+      vector<double> min4(ntoys,1e99), min3(ntoys,1e99), minsm(nsm,1e99);
+      vector<const double*> x4raw(ntoys);
+      for(int i=0;i<ntoys;i++) x4raw[i] = osc_test->map_matrix_tosc_toy_pred[i+1].GetMatrixArray();
+      for(int k=0;k<n_t24;k++){
+        double t24 = pow(10, lg_lo + (lg_hi-lg_lo)*( n_t24==1 ? 1.0 : double(k)/(n_t24-1) ));
+        if( t24 < t_amp ) t24 = t_amp;
+        double r = t_amp/t24; if( r>1 ) r = 1;
+        double root = sqrt(1-r);
+        for(int br=0; br<2; br++){
+          if( br==1 && root==0 ) continue;
+          double t14 = (br==0) ? (1-root)/2 : (1+root)/2;
+          osc_test->Set_oscillation_pars(t_dm2, t14, t24, 0);
+          osc_test->Apply_oscillation();
+          osc_test->Set_apply_POT();
+          TMatrixD Ph = osc_test->matrix_tosc_eff_newworld_pred;
+          TMatrixD Sh = osc_test->matrix_tosc_eff_newworld_abs_syst_total;
+          TMatrixD Chinv = pearson_inv(Ph, Sh);
+          const double *ph = Ph.GetMatrixArray();
+          const double *chv = Chinv.GetMatrixArray();
+          for(int i=0;i<ntoys;i++){
+            double c4 = quadform_diff(x4raw[i], ph, chv, NB, &buf[0]); if(c4<min4[i]) min4[i]=c4;
+            double c3 = quadform_diff(&x3[(size_t)i*NB], ph, chv, NB, &buf[0]); if(c3<min3[i]) min3[i]=c3;
+          }
+          for(int m=0;m<nsm;m++){
+            double c = quadform_diff(&xsm[(size_t)m*NB], ph, chv, NB, &buf[0]); if(c<minsm[m]) minsm[m]=c;
+          }
+        }
+      }
+      for(int i=0;i<ntoys;i++){
+        Dchi2_4vPseudo[i] = min4[i] - quadform_diff(x4raw[i], p3raw, c3raw, NB, &buf[0]);
+        Dchi2_3vPseudo[i] = min3[i] - chi2_3_on_x3[i];
+      }
+      sort(Dchi2_4vPseudo.begin(), Dchi2_4vPseudo.end());
+      sort(Dchi2_3vPseudo.begin(), Dchi2_3vPseudo.end());
+      t_Dchi2_data = t_chi2d_min - chi2_3_data;   // data chi2_4 is already the profiled min
+      t_cls_data   = cls_of( t_Dchi2_data );
+      t_cls_sm->clear(); t_cls_sm_prof->clear();
+      for(int m=0;m<nsm;m++){
+        t_cls_sm->push_back( cls_of( minsm[m] - chi2_3_on_xsm[m] ) );      // profiled, consistent with ensembles
+        t_cls_sm_prof->push_back( cls_of( chi2sm_min[m] - chi2_3_on_xsm[m] ) );// (identical here; kept for format)
+      }
+      outtree->Fill();
+      ndone++;
+      if( ndone % 5 == 0 ) cout<<TString::Format("     done %5d pts (FC mode, ipt %d: cls_data %.4f)", ndone, ipt, t_cls_data)<<endl;
+      continue;
+    }
 
     /////////////// every SM toy, evaluated at the SAME hypothesis as the ensembles
     // (the grid point's hypothesis, fixed from the data profile). Using each toy's

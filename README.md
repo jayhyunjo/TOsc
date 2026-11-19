@@ -96,17 +96,23 @@ anything.
 
 ### Option A — use the prepared dataset (this workstation)
 
-The canonical dataset is `/home/jjo/Work/MicroBooNE/LEEana/BNBNuMI_TOsc_input_combined/`
-(see its README.md for provenance — assembled from two handover copies, the
-`numifluxpatched` CV taking precedence; verified 2026-11-16 to match the
-published Nature spectra exactly, bin by bin, in all four numuCC channels —
-the other snapshot's NuMI CV is a pre-flux-patch version, +30–35% off).
-Wire it up with a single symlink:
+The canonical dataset is
+`/home/jjo/Work/MicroBooNE/LEEana/BNBNuMI_TOsc_input_numifluxpatched_confirmed/`
+— the exact Nature input set provided by Xiangpan (2026-11-19), in the original
+dybfs2 `dataset_input` layout. Verified: `merge.root` matches HEPData exactly
+(data + 3ν prediction, every bin); the full covariance built from its
+`XsFlux_edit` + `DetVar_edit` matches the official HEPData release at 1e-5 in
+every block. Wire it up with a single symlink:
 
 ```bash
 mkdir -p data_inputs
-ln -s /home/jjo/Work/MicroBooNE/LEEana/BNBNuMI_TOsc_input_combined data_inputs/dataset_input
+ln -s /home/jjo/Work/MicroBooNE/LEEana/BNBNuMI_TOsc_input_numifluxpatched_confirmed data_inputs/dataset_input
 ```
+
+(The earlier `BNBNuMI_TOsc_input_combined/` dataset is superseded: its CV and
+detector files are identical, but its `XsFlux_edit` was an older flux vintage —
+responsible for a localized 15% data-contour discrepancy at 1.3–3.2 eV² and
+now kept only for provenance.)
 
 ### Option B — regenerate inputs from the LEEana framework
 

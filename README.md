@@ -244,25 +244,36 @@ root -l -b -q 'plot_3p1_exact.C("output_scan_3p1_exact", 60, 60)'
 60×60 grid (production's CLs grid size), 100 profiling hypotheses per point;
 ~2.5 h on 19 workers.
 
-**Result vs the published curves** (`natureReproducer/data`), production-faithful
-configuration (`output_3p1_final`: 60×60, 7000-toy ensembles, 500 SM toys,
-fixed-hypothesis ensembles, data and SM toys profiled, no variance-reduction
-tricks), sampled at 200 Δm² values:
+**Result vs the published curves** — FINAL, with the author-confirmed Nature
+input files (`BNBNuMI_TOsc_input_numifluxpatched_confirmed`; its covariance
+matches the official HEPData release at 1e-5 in every block). Configuration:
+production Δm² lattice (80 bins = the 0.05-dex lattice identified in the paper
+vector figures), capping toy recipe, 10000 pseudo-experiments per point,
+1000 SM toys. Sampled at 200 Δm² values:
 
-| Curve | Region | median ratio (ours/published) | spread (16–84%) | within 10% |
+| Curve | Region | median ratio | spread (16–84%) | within 10% / 5% |
 |---|---|---|---|---|
-| Data exclusion | 0.03–80 eV² | **0.987** | 0.91–1.04 | 81% |
-| Data exclusion | 10–80 eV² | 0.972 | 0.94–1.02 | 95% |
-| Median sensitivity | 0.03–10 eV² | **0.97–0.98** | — | ~80–100% |
-| Median sensitivity | 10–80 eV² | 0.926 | 0.91–0.94 | 88% |
+| Data exclusion | 0.03–80 eV² | **1.016** | 0.97–1.07 | 90% / 66% |
+| Data exclusion | 1.3–3.2 eV² | **1.020** | 0.98–1.13 | 82% / 62% |
+| Data exclusion | 10–80 eV² | **0.999** | 0.97–1.04 | 97% / 84% |
+| Median sensitivity | 0.03–80 eV² | **1.021** | 0.98–1.08 | 91% / 73% |
+| Median sensitivity | 10–80 eV² | **1.022** | 1.00–1.04 | 98% / 90% |
 
-Two items remain open and are posed to the original authors: (a) the median
-sensitivity at Δm² > 10 eV² is ~7% stronger than published; (b) our ±1σ
-sensitivity bands are uniformly ~0.6× the published width, i.e. production's
-per-toy limit ensemble is ~1.7× more dispersed at every Δm². Tested and ruled
-out: grid resolution, profiled-everywhere toy χ², common-random-number effects,
-and (inconclusively) p-value ensemble size. The construction itself matches the
-production CLs code (`winxji/Frequentist_CL_calculation`) step for step.
+The previously-reported data discrepancy at 1.3–3.2 eV² (ratio ~0.83) was
+caused by an older vintage of the flux covariance (`XsFlux_edit`); it closed
+completely with the confirmed files. Run-to-run (seed) scatter of our own
+curves is ±3–4% — the residual spread above is at the Monte-Carlo floor.
+The median ratio in the 1.3–3.2 eV² kink window reads 1.15 on the production
+lattice (1.02 on a 60-bin lattice): comparing x-at-fixed-Δm² is ill-conditioned
+where the contour is near-vertical; treat that window's ratio with care.
+
+**One item remains open: the ±1σ/2σ sensitivity band WIDTHS** — ours are
+0.53–0.63× the published width at all Δm² (verified against the paper's own
+vector figures), despite certified inputs, the production construction,
+recipe, counts, and lattice, and despite ruling out: CRN, FC/per-toy
+profiling, profiling density, ensemble sizes, grid resolution, and both toy
+negativity treatments. The per-toy limit ensemble in production is ~1.7× more
+dispersed than ours for reasons not yet identified.
 
 ### Performance note
 

@@ -269,17 +269,23 @@ The previously-reported data discrepancy at 1.3–3.2 eV² (ratio ~0.83) was
 caused by an older vintage of the flux covariance (`XsFlux_edit`); it closed
 completely with the confirmed files. Run-to-run (seed) scatter of our own
 curves is ±3–4% — the residual spread above is at the Monte-Carlo floor.
-The median ratio in the 1.3–3.2 eV² kink window reads 1.15 on the production
-lattice (1.02 on a 60-bin lattice): comparing x-at-fixed-Δm² is ill-conditioned
-where the contour is near-vertical; treat that window's ratio with care.
 
-**One item remains open: the ±1σ/2σ sensitivity band WIDTHS** — ours are
-0.53–0.63× the published width at all Δm² (verified against the paper's own
-vector figures), despite certified inputs, the production construction,
-recipe, counts, and lattice, and despite ruling out: CRN, FC/per-toy
-profiling, profiling density, ensemble sizes, grid resolution, and both toy
-negativity treatments. The per-toy limit ensemble in production is ~1.7× more
-dispersed than ours for reasons not yet identified.
+**Two coupled items remain open:**
+
+1. **±1σ/2σ sensitivity band WIDTHS**: ours are 0.53–0.63× the published width
+   at all Δm² (verified against the paper's own vector figures), despite
+   certified inputs, the production construction, recipe, counts, and lattice,
+   and despite ruling out by measurement: CRN, per-toy profiling (tested with
+   certified flux), FC-everywhere, profiling density, ensemble sizes, grid
+   resolution, and both toy negativity treatments. Production's per-toy limit
+   ensemble is ~1.7× more dispersed than ours for reasons not yet identified.
+2. **Median sensitivity in the 1.3–4 eV² transition window**: a +5–20%
+   excess (extraction-method dependent: ~+15% with the production contour
+   pipeline, ~+5% row-wise over 2.1–3 eV²) that is NOT resolved. The median
+   matches everywhere else (overall 1.02; 10–80 eV²: 1.022 with 98% within
+   10%). In this window the per-toy contours are multi-valued and the
+   median-of-contours depends on the ensemble dispersion — so item 2 is
+   plausibly the same problem as item 1, not independent.
 
 ### Performance note
 

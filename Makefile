@@ -70,3 +70,6 @@ diag_band2: diag_band2.o $(DIR_SRC)/TOsc.o
 
 diag_band3: diag_band3.o $(DIR_SRC)/TOsc.o
 	$(CC) -o $@ diag_band3.o $(DIR_SRC)/TOsc.o $(LDFLAGS) -lMinuit2
+
+diag_profile: diag_profile.o $(DIR_SRC)/TOsc.o
+	$(CC) -o $@ diag_profile.o $(DIR_SRC)/TOsc.o $(LDFLAGS) -lMinuit2

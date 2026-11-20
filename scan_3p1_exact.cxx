@@ -79,7 +79,8 @@ int main(int argc, char** argv)
 {
   int ijob=0, njobs=1, ntoys=7000, nsm=500, n_t24=50, num_dm2=60, num_amp=60, onerow=-1, crn=0, fcmode=0, toyflip=0, toyclip=0;
   int seed_global = 20261119;
-  int branchsel = 0;// 0 = both t14 solutions, 1 = lower branch only, 2 = upper branch only// fixed seed for the two GLOBAL toy ensembles (see below)
+  int branchsel = 0;
+  int profmode = 0;// 0 = choose hypothesis by profiling on DATA, 1 = on the 3nu Asimov// 0 = both t14 solutions, 1 = lower branch only, 2 = upper branch only// fixed seed for the two GLOBAL toy ensembles (see below)
   TString outdir = "output_scan_3p1_exact";
 
   for(int i=1; i<argc; i++) {
@@ -98,6 +99,7 @@ int main(int argc, char** argv)
     if( strcmp(argv[i],"-toyclip")==0 ){ stringstream c(argv[i+1]); c>>toyclip; }
     if( strcmp(argv[i],"-seed")==0 )   { stringstream c(argv[i+1]); c>>seed_global; }
     if( strcmp(argv[i],"-branch")==0 ) { stringstream c(argv[i+1]); c>>branchsel; }
+    if( strcmp(argv[i],"-prof")==0 )   { stringstream c(argv[i+1]); c>>profmode; }
   }
 
   gROOT->SetBatch(1);
@@ -284,6 +286,7 @@ int main(int argc, char** argv)
 
     /////////////// profile data AND every SM toy over the (t14,t24) family
     t_chi2d_min = 1e99;
+    double sel_min = 1e99;
     for(int m=0;m<nsm;m++) chi2sm_min[m] = 1e99;
 
     double lg_lo = log10(t_amp), lg_hi = 0;
@@ -307,7 +310,12 @@ int main(int argc, char** argv)
         const double *c4raw = C4inv.GetMatrixArray();
 
         double c2d = quadform_diff(D.GetMatrixArray(), p4raw, c4raw, NB, &buf[0]);
-        if( c2d < t_chi2d_min ){ t_chi2d_min = c2d; t_t14_d = t14; t_t24_d = t24; }
+        // hypothesis selection: on data (profmode 0, correct for the DATA curve)
+        // or on the 3nu Asimov (profmode 1, data-independent, appropriate for a
+        // SENSITIVITY). t_chi2d_min always stores the data chi2 at the chosen point.
+        double sel = (profmode==0) ? c2d
+                   : quadform_diff(p3raw, p4raw, c4raw, NB, &buf[0]);
+        if( sel < sel_min ){ sel_min = sel; t_chi2d_min = c2d; t_t14_d = t14; t_t24_d = t24; }
 
         for(int m=0;m<nsm;m++){
           double c = quadform_diff(&xsm[(size_t)m*NB], p4raw, c4raw, NB, &buf[0]);

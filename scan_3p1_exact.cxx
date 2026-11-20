@@ -78,7 +78,8 @@ static TMatrixD pearson_inv(const TMatrixD &P, const TMatrixD &S)
 int main(int argc, char** argv)
 {
   int ijob=0, njobs=1, ntoys=7000, nsm=500, n_t24=50, num_dm2=60, num_amp=60, onerow=-1, crn=0, fcmode=0, toyflip=0, toyclip=0;
-  int seed_global = 20261119;// fixed seed for the two GLOBAL toy ensembles (see below)
+  int seed_global = 20261119;
+  int branchsel = 0;// 0 = both t14 solutions, 1 = lower branch only, 2 = upper branch only// fixed seed for the two GLOBAL toy ensembles (see below)
   TString outdir = "output_scan_3p1_exact";
 
   for(int i=1; i<argc; i++) {
@@ -96,6 +97,7 @@ int main(int argc, char** argv)
     if( strcmp(argv[i],"-toyflip")==0 ){ stringstream c(argv[i+1]); c>>toyflip; }
     if( strcmp(argv[i],"-toyclip")==0 ){ stringstream c(argv[i+1]); c>>toyclip; }
     if( strcmp(argv[i],"-seed")==0 )   { stringstream c(argv[i+1]); c>>seed_global; }
+    if( strcmp(argv[i],"-branch")==0 ) { stringstream c(argv[i+1]); c>>branchsel; }
   }
 
   gROOT->SetBatch(1);
@@ -292,6 +294,8 @@ int main(int argc, char** argv)
       double root = sqrt(1-r);
       for(int br=0; br<2; br++){
         if( br==1 && root==0 ) continue;
+        if( branchsel==1 && br==1 ) continue;
+        if( branchsel==2 && br==0 && root!=0 ) continue;
         double t14 = (br==0) ? (1-root)/2 : (1+root)/2;
         osc_test->Set_oscillation_pars(t_dm2, t14, t24, 0);
         osc_test->Apply_oscillation();
@@ -372,6 +376,10 @@ int main(int argc, char** argv)
         double root = sqrt(1-r);
         for(int br=0; br<2; br++){
           if( br==1 && root==0 ) continue;
+          if( branchsel==1 && br==1 ) continue;
+          if( branchsel==2 && br==0 && root!=0 ) continue;
+        if( branchsel==1 && br==1 ) continue;
+        if( branchsel==2 && br==0 && root!=0 ) continue;
           double t14 = (br==0) ? (1-root)/2 : (1+root)/2;
           osc_test->Set_oscillation_pars(t_dm2, t14, t24, 0);
           osc_test->Apply_oscillation();

@@ -78,6 +78,7 @@ static TMatrixD pearson_inv(const TMatrixD &P, const TMatrixD &S)
 int main(int argc, char** argv)
 {
   int ijob=0, njobs=1, ntoys=7000, nsm=500, n_t24=50, num_dm2=60, num_amp=60, onerow=-1, crn=0, fcmode=0, toyflip=0, toyclip=0;
+  int seed_global = 20261119;// fixed seed for the two GLOBAL toy ensembles (see below)
   TString outdir = "output_scan_3p1_exact";
 
   for(int i=1; i<argc; i++) {
@@ -94,6 +95,7 @@ int main(int argc, char** argv)
     if( strcmp(argv[i],"-fc")==0 )   { stringstream c(argv[i+1]); c>>fcmode; }
     if( strcmp(argv[i],"-toyflip")==0 ){ stringstream c(argv[i+1]); c>>toyflip; }
     if( strcmp(argv[i],"-toyclip")==0 ){ stringstream c(argv[i+1]); c>>toyclip; }
+    if( strcmp(argv[i],"-seed")==0 )   { stringstream c(argv[i+1]); c>>seed_global; }
   }
 
   gROOT->SetBatch(1);
@@ -203,6 +205,14 @@ int main(int argc, char** argv)
 
   //////////////////////////////////////////// ensemble A: 3nu pseudo for the p-value distribution
 
+  // CRITICAL: the grid is striped over jobs point by point, so neighbouring
+  // amplitudes of one dm2 row are produced by DIFFERENT processes. The SM toys
+  // (and the 3nu pdf toys) must therefore be IDENTICAL in every job, otherwise
+  // "toy m" is a different dataset at each amplitude, the per-toy CLs curve is a
+  // mixture of unrelated toys, and the +-1 sigma band collapses towards the
+  // median (measured: 0.19 dex instead of the correct 0.31). Seeding the two
+  // global ensembles deterministically makes toy m the same dataset everywhere.
+  osc_test->tosc_rand->SetSeed(seed_global);
   osc_test->Set_toy_variations(ntoys);
   const int NB = P3.GetNcols();
   vector<double> buf(NB);
@@ -230,6 +240,10 @@ int main(int argc, char** argv)
   for(int i=0;i<nsm;i++) chi2_3_on_xsm[i] = quadform_diff(&xsm[(size_t)i*NB], p3raw, c3raw, NB, &buf[0]);
 
   //////////////////////////////////////////// data
+
+  // per-point 4nu ensembles should NOT be locked to the global seed: give each
+  // job an independent stream again (unless -crn asks for common randoms).
+  if( !crn ) osc_test->tosc_rand->SetSeed(0);
 
   osc_test->Set_meas2fitdata();
   TMatrixD D = osc_test->matrix_tosc_fitdata_newworld;

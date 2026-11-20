@@ -61,3 +61,12 @@ dump_toys: dump_toys.o $(DIR_SRC)/TOsc.o
 
 dump_cov_vs_published: dump_cov_vs_published.o $(DIR_SRC)/TOsc.o
 	$(CC) -o $@ dump_cov_vs_published.o $(DIR_SRC)/TOsc.o $(LDFLAGS) -lMinuit2
+
+diag_dscale: diag_dscale.o $(DIR_SRC)/TOsc.o
+	$(CC) -o $@ diag_dscale.o $(DIR_SRC)/TOsc.o $(LDFLAGS) -lMinuit2
+
+diag_band2: diag_band2.o $(DIR_SRC)/TOsc.o
+	$(CC) -o $@ diag_band2.o $(DIR_SRC)/TOsc.o $(LDFLAGS) -lMinuit2
+
+diag_band3: diag_band3.o $(DIR_SRC)/TOsc.o
+	$(CC) -o $@ diag_band3.o $(DIR_SRC)/TOsc.o $(LDFLAGS) -lMinuit2

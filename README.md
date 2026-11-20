@@ -250,42 +250,43 @@ root -l -b -q 'plot_3p1_exact.C("output_scan_3p1_exact", 60, 60)'
 60×60 grid (production's CLs grid size), 100 profiling hypotheses per point;
 ~2.5 h on 19 workers.
 
-**Result vs the published curves** — FINAL, with the author-confirmed Nature
-input files (`BNBNuMI_TOsc_input_numifluxpatched_confirmed`; its covariance
-matches the official HEPData release at 1e-5 in every block). Configuration:
-production Δm² lattice (80 bins = the 0.05-dex lattice identified in the paper
-vector figures), capping toy recipe, 10000 pseudo-experiments per point,
-1000 SM toys. Sampled at 200 Δm² values:
+**Result vs the published curves** (final run `output_3p1_final2`): confirmed
+Nature inputs, production Δm² lattice (80 bins), capping toy recipe, 10000
+pseudo-experiments per point, 1000 SM toys, and the toy-coherence seed fix.
+Sampled at 200 Δm² values:
 
-| Curve | Region | median ratio | spread (16–84%) | within 10% / 5% |
+| Curve | Region | median ratio | spread (16–84%) | within 10% |
 |---|---|---|---|---|
-| Data exclusion | 0.03–80 eV² | **1.016** | 0.97–1.07 | 90% / 66% |
-| Data exclusion | 1.3–3.2 eV² | **1.020** | 0.98–1.13 | 82% / 62% |
-| Data exclusion | 10–80 eV² | **0.999** | 0.97–1.04 | 97% / 84% |
-| Median sensitivity | 0.03–80 eV² | **1.021** | 0.98–1.08 | 91% / 73% |
-| Median sensitivity | 10–80 eV² | **1.022** | 1.00–1.04 | 98% / 90% |
+| Data exclusion | 0.03–80 eV² | **1.031** | 0.95–1.10 | 77% |
+| Data exclusion | 1.3–4 eV² | **1.006** | 0.97–1.07 | 93% |
+| Data exclusion | 10–80 eV² | **0.993** | 0.92–1.07 | 82% |
+| Median sensitivity | 0.03–80 eV² | 1.037 | 0.99–1.11 | 79% |
+| Median sensitivity | 1.3–4 eV² | 1.128 | 1.08–1.23 | 29% |
+| Median sensitivity | 10–80 eV² | 1.085 | 1.05–1.11 | 71% |
 
-The previously-reported data discrepancy at 1.3–3.2 eV² (ratio ~0.83) was
-caused by an older vintage of the flux covariance (`XsFlux_edit`); it closed
-completely with the confirmed files. Run-to-run (seed) scatter of our own
-curves is ±3–4% — the residual spread above is at the Monte-Carlo floor.
+±1σ band widths (dex), ours vs published: 0.353/0.319 at 0.5 eV²,
+0.298/0.309 at 1 eV², 0.297/0.296 at 2.33 eV², 0.385/0.296 at 14.7 eV²,
+0.363/0.297 at 58 eV². Ratios 0.96–1.30, previously 0.53–0.63 everywhere.
 
-**Two coupled items remain open:**
+**The band bug (fixed 2026-11-20).** The grid is striped over jobs point by
+point, and each job generated its own SM toy ensemble with an auto-seeded
+TRandom3. "Toy m" was therefore a different pseudo-experiment at each
+amplitude, so the per-toy CLs curve used to locate each toy's 95% crossing was
+a mixture of unrelated toys: crossings bunched towards the median and the band
+collapsed to ~0.6× its correct width. The data curve was unaffected (no toy
+ensemble) and the median survived (a mixture still averages near the middle),
+which is why the symptom looked like a sensitivity-only problem. `-seed`
+(default 20261119) now seeds the two global ensembles identically in every job;
+per-point 4ν ensembles keep independent streams. Verified three ways after the
+fix: band width 0.195 → 0.309 dex at Δm² = 0.944, row-wise and contour
+extractions agree (they differed by 13% before), and per-toy contours are now
+1–2 clean pieces of 124–139 points instead of 18–39 fragments.
 
-1. **±1σ/2σ sensitivity band WIDTHS**: ours are 0.53–0.63× the published width
-   at all Δm² (verified against the paper's own vector figures), despite
-   certified inputs, the production construction, recipe, counts, and lattice,
-   and despite ruling out by measurement: CRN, per-toy profiling (tested with
-   certified flux), FC-everywhere, profiling density, ensemble sizes, grid
-   resolution, and both toy negativity treatments. Production's per-toy limit
-   ensemble is ~1.7× more dispersed than ours for reasons not yet identified.
-2. **Median sensitivity in the 1.3–4 eV² transition window**: a +5–20%
-   excess (extraction-method dependent: ~+15% with the production contour
-   pipeline, ~+5% row-wise over 2.1–3 eV²) that is NOT resolved. The median
-   matches everywhere else (overall 1.02; 10–80 eV²: 1.022 with 98% within
-   10%). In this window the per-toy contours are multi-valued and the
-   median-of-contours depends on the ensemble dispersion — so item 2 is
-   plausibly the same problem as item 1, not independent.
+**Remaining**: the median runs 8–13% weak in the 1.3–4 eV² kink window and at
+Δm² > 10 eV², and the bands overshoot ~25% at high Δm². The band overshoot
+implies D ∝ x^1.49 there against x^1.93 for production, which points at the
+high-Δm² rapid-oscillation numerics measured against the official Δχ² map on
+day one (~4 χ² units at 38 eV²), not at the CLs construction.
 
 ### Performance note
 
